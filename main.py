@@ -1,3 +1,4 @@
+import httpx
 from fastapi import FastAPI
 from pydantic import BaseModel
 from rag import retrieve_context
@@ -5,6 +6,23 @@ from rag import retrieve_context
 
 class Question(BaseModel):
     question: str
+
+
+class Answer(BaseModel):
+    answer: str
+
+
+async def call_llm(prompt: str) -> str:
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/chat/completions",
+            json={
+                "model": "Qwen/Qwen1.5-1.8B-Chat",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 200,
+            },
+        )
+    return response.json()["choices"][0]["message"]["content"]
 
 
 app = FastAPI()
@@ -15,21 +33,25 @@ async def root():
     return {"message": "Hello World!"}
 
 
-@app.post("/ask")
-async def ask(q: Question):
+@app.post("/ask", response_model=Answer)
+async def ask(q: Question) -> Answer:
     results = retrieve_context(q.question)
+    chunks = []
 
-    context = "\n\n".join(
-        f"{node.metadata.get('title')} by {node.metadata.get('artist')}:\n{node.text}"
-        for node in results
-    )
+    for node in results:
+        title = node.metadata.get("title") or "Unknown title"
+        artist = node.metadata.get("artist") or "Unknown artist"
+        album = node.metadata.get("album") or "Unknow album"
+        chunks.append(f"{title} by {artist} from {album}:\n{node.text}")
+
+    context = "\n\n".join(chunks)
 
     prompt = f"""
     You are analyzing song lyrics.
 
-    Use the lyrics below to answer the question.
+    Use ONLY the provided lyrics below to answer the question.
     If multiple songs are relevant, compare them and mention each song explicitly. 
-    Use the song's metadata determine the song's title, album (if appliccable) and artist.
+    Use the song's metadata to determine the song's title, album (if appliccable) and artist.
     
     Lyrics:
     {context}
@@ -38,6 +60,7 @@ async def ask(q: Question):
     {q.question}
 
     Answer:
-    """
+    """  # noqa
 
-    return {"prompt": prompt}
+    answer = await call_llm(prompt)
+    return Answer(answer=answer)
