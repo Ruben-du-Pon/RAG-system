@@ -2,5 +2,4 @@ fastapi
 uvicorn
 pydantic
 httpx
-llama-index
-llama-index-embeddings-huggingface
+llama-index-core
