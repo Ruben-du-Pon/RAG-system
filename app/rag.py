@@ -3,7 +3,7 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
 
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en")
-documents = SimpleDirectoryReader("data", recursive=True).load_data()
+documents = SimpleDirectoryReader("app/data", recursive=True).load_data()
 
 
 def format_name(name: str | None) -> str | None:
@@ -48,7 +48,7 @@ for doc in documents:
 
 index = VectorStoreIndex.from_documents(documents)
 
-retriever = index.as_retriever(similarity_top_k=5)
+retriever = index.as_retriever(similarity_top_k=7)
 
 
 def retrieve_context(question: str):

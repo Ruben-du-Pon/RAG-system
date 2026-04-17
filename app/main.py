@@ -41,7 +41,7 @@ async def ask(q: Question) -> Answer:
     for node in results:
         title = node.metadata.get("title") or "Unknown title"
         artist = node.metadata.get("artist") or "Unknown artist"
-        album = node.metadata.get("album") or "Unknow album"
+        album = node.metadata.get("album") or "Unknown album"
         chunks.append(f"{title} by {artist} from {album}:\n{node.text}")
 
     context = "\n\n".join(chunks)
@@ -62,5 +62,6 @@ async def ask(q: Question) -> Answer:
     Answer:
     """  # noqa
 
-    answer = await call_llm(prompt)
+    # answer = await call_llm(prompt)
+    answer = f"(FAKE ANSWER)\n\nprompt:\n{prompt}"
     return Answer(answer=answer)
