@@ -1,7 +1,7 @@
 import httpx
 from fastapi import FastAPI
 from pydantic import BaseModel
-from rag import retrieve_context
+from .rag import retrieve_context
 
 
 class Question(BaseModel):
@@ -15,13 +15,15 @@ class Answer(BaseModel):
 async def call_llm(prompt: str) -> str:
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "http://localhost:8001/v1/chat/completions",
+            "http://llm:8000/v1/chat/completions",
             json={
                 "model": "Qwen/Qwen1.5-1.8B-Chat",
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 200,
             },
         )
+        response.raise_for_status()
+
     return response.json()["choices"][0]["message"]["content"]
 
 
