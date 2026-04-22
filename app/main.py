@@ -13,11 +13,11 @@ class Answer(BaseModel):
 
 
 async def call_llm(prompt: str) -> str:
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(
-            "http://llm:8000/v1/chat/completions",
+            "http://llm:11434/v1/chat/completions",
             json={
-                "model": "Qwen/Qwen1.5-1.8B-Chat",
+                "model": "qwen2.5:3b",
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 200,
             },
@@ -64,6 +64,5 @@ async def ask(q: Question) -> Answer:
     Answer:
     """  # noqa
 
-    # answer = await call_llm(prompt)
-    answer = f"(FAKE ANSWER)\n\nprompt:\n{prompt}"
+    answer = await call_llm(prompt)
     return Answer(answer=answer)

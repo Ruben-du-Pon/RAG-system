@@ -7,6 +7,12 @@ services:
     restart: 'no'
 
   llm:
-    build: ./test_llm
+    image: ollama/ollama
     ports:
-      - '8001:8000'
+      - '8001:11434'
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint: sh -c "ollama serve & sleep 5 && ollama pull qwen2.5:3b && wait"
+
+volumes:
+  ollama_data:
